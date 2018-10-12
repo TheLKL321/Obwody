@@ -1,3 +1,5 @@
 Obwody.vcxproj
 Obwody.vcxproj.*
 testy/
+Debug/
+x64/
