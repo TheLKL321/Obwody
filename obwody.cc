@@ -73,7 +73,7 @@ void writeResults (map<pair<char, string>, vector<string>> partMap)
 }
 
 // Checks if any of declared nodes are unconnected and if so, prints according error
-void checkConnections (set<string> nodeSet, bool ifConnectedToMass) {
+void checkConnections (set<int> nodeSet, bool ifConnectedToMass) {
 	if (!ifConnectedToMass)
 		nodeSet.insert(0);
 	if (!nodeSet.empty()) {
@@ -104,20 +104,24 @@ void populateMap (map<pair<char, string>, vector<string>> partMap, tuple<string,
 }
 
 int main() {
-	set<string> idSet, nodeSet;
+	set<string> idSet;
+	set<int> nodeSet;
 	map<pair<char, string>, vector<string>> partMap;
 	tuple<string, string, int, int, int> data;
 	bool ifConnectedToMass = false;
 	string input;
 	int licz = 0;
 	while(getline(cin, input)) {
-		readLine(input);
-		if(get<0>(data) ==  "") {
+		data = readLine(input);
+		if(get<0>(data) == "" || idSet.find(get<0>(data)) != idSet.end()) {
 			err(input, licz);
 		}
 		else {
-			idSet.insert(get<1>(data));
-			nodeSet.insert(get<0>(data));
+			idSet.insert(get<0>(data));
+			nodeSet.insert(get<2>(data));
+			nodeSet.insert(get<3>(data));
+			if (get<4>(data) != -1) 
+				nodeSet.insert(get<4>(data));
 			populateMap(partMap, data);
 		}
 		licz++;
