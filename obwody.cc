@@ -59,7 +59,7 @@ void writeResults (map<pair<char, string>, vector<string>> partMap)
 {
 	for(map<pair<char, string>, vector<string>>::iterator it = partMap.begin(); it != partMap.end(); it++)
 	{
-		int n = (it->nd).size();
+		size_t n = (it->nd).size();
 		for(int i = 0; i < n; i++)
 		{
 			cout << (it->nd)[i];
