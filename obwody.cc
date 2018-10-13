@@ -9,14 +9,66 @@
 
 using namespace std;
 
-#define pb push_back
 #define st first
 #define nd second
 #define mp make_pair
+#define oMap map<string,string, cmpByOrder>
+#define pMap map<pair<char, string>, set<string, cmpByOrder>>
 
 regex ID("[TDRCE](0|[1-9]\\d{0,9})");
 regex TYPE("([A-Z]|[0-9])[a-zA-Z0-9,-\\/]+");
 regex NODE("[0-9][1-9]{0,9}");
+
+struct cmpByOrder {
+    bool operator()(string a, string b) const {
+			int x1 = -1, x2 = -1;
+			switch (a[0]) {
+				case 'T' :
+					x1 = 0;
+					break;
+				case 'D' :
+					x1 = 1;
+					break;
+				case 'R' :
+					x1 = 2;
+					break;
+				case 'C' :
+					x1 = 3;
+					break;
+				case 'E' :
+					x1 = 4;
+					break;
+				default: x1 = -1;
+			}
+			switch (b[0]) {
+				case 'T' :
+					x2 = 0;
+					break;
+				case 'D' :
+					x2 = 1;
+					break;
+				case 'R' :
+					x2 = 2;
+					break;
+				case 'C' :
+					x2 = 3;
+					break;
+				case 'E' :
+					x2 = 4;
+					break;
+				default : x1 = -1;
+			}
+			if(x1 < x2) return true;
+			else
+				if (x1 > x2) return false;
+				else
+					if(a.length() < b.length()) return true;
+					else
+						if(a.length() > b.length()) return false;
+						else
+							return a < b;
+    }
+};
 
 // Prints out an error
 void err(string line, int i) {
@@ -55,20 +107,21 @@ tuple<string, string, int, int, int> readLine(string line) {
 		return tuple<string, string, int, int, int>("", "", -1, -1, -1);
 }
 
-void writeResults (map<pair<char, string>, vector<string>> partMap)
+void writeResults (pMap partMap, oMap orderMap)
 {
-	for(map<pair<char, string>, vector<string>>::iterator it = partMap.begin(); it != partMap.end(); it++)
+	pMap::iterator t;
+	for(oMap::iterator it = orderMap.begin(); it != orderMap.end(); it++)
 	{
-		size_t n = (it->nd).size();
-		for(int i = 0; i < n; i++)
+		t = partMap.find(mp((it->st)[0], it->nd));
+		for(set<string,cmpByOrder>::iterator i = (t->nd).begin(); i != (t->nd).end(); i++)
 		{
-			cout << (it->nd)[i];
-			if(i == n)
-				cout << ": ";
-			else
+			if(i != (t->nd).begin())
 				cout << ", ";
+			cout << *i;
+			if(i != (t->nd).begin())
+			 	orderMap.erase(*i);
 		}
-		cout << (it->st).st << endl;
+		cout << ": " << (t->st).nd << endl;
 	}
 }
 
@@ -90,27 +143,43 @@ void checkConnections (set<int> nodeSet, bool ifConnectedToMass) {
 	}
 }
 
-void populateMap (map<pair<char, string>, vector<string>> partMap, tuple<string, string, int, int, int> data) {
+void connect(set<int> *unconnectedNodeSet, set<int> *connectedNodeSet, int node)
+{
+	if(!connectedNodeSet->count(node))
+	{
+		if(unconnectedNodeSet->count(node))
+		{
+			unconnectedNodeSet->erase(node);
+			connectedNodeSet->insert(node);
+		}
+		else
+			unconnectedNodeSet->insert(node);
+	}
+}
+
+void populateMap (pMap *partMap, tuple<string, string, int, int, int> data) {
 	pair<char, string> key = mp(get<0>(data)[0], get<1>(data));
-	map<pair<char, string>, vector<string>>::iterator it = partMap.find(key);
-	if(it == partMap.end()){
-		vector<string> value;
-		value.pb(get<0>(data));
-		partMap.insert(mp(key,value));
+	pMap::iterator it = partMap->find(key);
+	if(it == partMap->end()){
+		set<string,cmpByOrder> value;
+		value.insert(get<0>(data));
+		partMap->insert(mp(key,value));
 	}
 	else{
-		(it->nd).pb(get<0>(data));
+		(it->nd).insert(get<0>(data));
 	}
 }
 
 int main() {
 	set<string> idSet;
-	set<int> nodeSet;
-	map<pair<char, string>, vector<string>> partMap;
+	set<int> unconnectedNodeSet;
+	set<int> connectedNodeSet;
+	pMap partMap;
+	oMap orderMap;
 	tuple<string, string, int, int, int> data;
 	bool ifConnectedToMass = false;
 	string input;
-	int licz = 0;
+	int licz = 1;
 	while(getline(cin, input)) {
 		data = readLine(input);
 		if(get<0>(data) == "" || idSet.find(get<0>(data)) != idSet.end()) {
@@ -118,14 +187,18 @@ int main() {
 		}
 		else {
 			idSet.insert(get<0>(data));
-			nodeSet.insert(get<2>(data));
-			nodeSet.insert(get<3>(data));
-			if (get<4>(data) != -1) 
-				nodeSet.insert(get<4>(data));
-			populateMap(partMap, data);
+			orderMap.insert(mp(get<0>(data), get<1>(data)));
+			if((get<2>(data) == 0) || (get<3>(data) == 0) || (get<4>(data) == 0))
+				ifConnectedToMass = true;
+			connect(&unconnectedNodeSet, &connectedNodeSet, get<2>(data));
+			if(get<3>(data) != get<2>(data))
+				connect(&unconnectedNodeSet, &connectedNodeSet, get<3>(data));
+			if ((get<4>(data) != -1) && (get<4>(data) != get<2>(data)) && (get<4>(data) != get<3>(data)))
+				connect(&unconnectedNodeSet, &connectedNodeSet, get<4>(data));
+			populateMap(&partMap, data);
 		}
 		licz++;
 	}
-	checkConnections(nodeSet, ifConnectedToMass);
-	writeResults(partMap);
+	checkConnections(unconnectedNodeSet, ifConnectedToMass);
+	writeResults(partMap, orderMap);
 }
