@@ -137,6 +137,20 @@ void checkConnections (set<int> nodeSet, bool ifConnectedToMass) {
 	}
 }
 
+void connect(set<int> *unconnectedNodeSet, set<int> *connectedNodeSet, int node)
+{
+	if(!connectedNodeSet->count(node))
+	{
+		if(unconnectedNodeSet->count(node))
+		{
+			unconnectedNodeSet->erase(node);
+			connectedNodeSet->insert(node);
+		}
+		else
+			unconnectedNodeSet->insert(node);
+	}
+}
+
 void populateMap (map<pair<char, string>, vector<string>, cmpByPart> *partMap, tuple<string, string, int, int, int> data) {
 	pair<char, string> key = mp(get<0>(data)[0], get<1>(data));
 	map<pair<char, string>, vector<string>, cmpByPart>::iterator it = partMap->find(key);
@@ -152,7 +166,8 @@ void populateMap (map<pair<char, string>, vector<string>, cmpByPart> *partMap, t
 
 int main() {
 	set<string> idSet;
-	set<int> nodeSet;
+	set<int> unconnectedNodeSet;
+	set<int> connectedNodeSet;
 	map<pair<char, string>, vector<string>, cmpByPart> partMap;
 	tuple<string, string, int, int, int> data;
 	bool ifConnectedToMass = false;
@@ -165,14 +180,16 @@ int main() {
 		}
 		else {
 			idSet.insert(get<0>(data));
-			nodeSet.insert(get<2>(data));
-			nodeSet.insert(get<3>(data));
+			if((get<2>(data) == 0) || (get<3>(data) == 0) || (get<4>(data) == 0))
+				ifConnectedToMass = true;
+			connect(&unconnectedNodeSet, &connectedNodeSet, get<2>(data));
+			connect(&unconnectedNodeSet, &connectedNodeSet, get<3>(data));
 			if (get<4>(data) != -1)
-				nodeSet.insert(get<4>(data));
+				connect(&unconnectedNodeSet, &connectedNodeSet, get<4>(data));
 			populateMap(&partMap, data);
 		}
 		licz++;
 	}
-	checkConnections(nodeSet, ifConnectedToMass);
+	checkConnections(unconnectedNodeSet, ifConnectedToMass);
 	writeResults(partMap);
 }
