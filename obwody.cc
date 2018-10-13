@@ -183,8 +183,9 @@ int main() {
 			if((get<2>(data) == 0) || (get<3>(data) == 0) || (get<4>(data) == 0))
 				ifConnectedToMass = true;
 			connect(&unconnectedNodeSet, &connectedNodeSet, get<2>(data));
-			connect(&unconnectedNodeSet, &connectedNodeSet, get<3>(data));
-			if (get<4>(data) != -1)
+			if(get<3>(data) != get<2>(data))
+				connect(&unconnectedNodeSet, &connectedNodeSet, get<3>(data));
+			if ((get<4>(data) != -1) && (get<4>(data) != get<2>(data)) && (get<4>(data) != get<3>(data)))
 				connect(&unconnectedNodeSet, &connectedNodeSet, get<4>(data));
 			populateMap(&partMap, data);
 		}
