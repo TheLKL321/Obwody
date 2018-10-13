@@ -60,15 +60,15 @@ void writeResults (map<pair<char, string>, vector<string>> partMap)
 	for(map<pair<char, string>, vector<string>>::iterator it = partMap.begin(); it != partMap.end(); it++)
 	{
 		size_t n = (it->nd).size();
-		for(int i = 0; i < n; i++)
+		for(size_t i = 0; i < n; i++)
 		{
 			cout << (it->nd)[i];
-			if(i == n)
+			if(i == n-1)
 				cout << ": ";
 			else
 				cout << ", ";
 		}
-		cout << (it->st).st << endl;
+		cout << (it->st).nd << endl;
 	}
 }
 
@@ -90,13 +90,13 @@ void checkConnections (set<int> nodeSet, bool ifConnectedToMass) {
 	}
 }
 
-void populateMap (map<pair<char, string>, vector<string>> partMap, tuple<string, string, int, int, int> data) {
+void populateMap (map<pair<char, string>, vector<string>> *partMap, tuple<string, string, int, int, int> data) {
 	pair<char, string> key = mp(get<0>(data)[0], get<1>(data));
-	map<pair<char, string>, vector<string>>::iterator it = partMap.find(key);
-	if(it == partMap.end()){
+	map<pair<char, string>, vector<string>>::iterator it = partMap->find(key);
+	if(it == partMap->end()){
 		vector<string> value;
 		value.pb(get<0>(data));
-		partMap.insert(mp(key,value));
+		partMap->insert(mp(key,value));
 	}
 	else{
 		(it->nd).pb(get<0>(data));
@@ -110,7 +110,7 @@ int main() {
 	tuple<string, string, int, int, int> data;
 	bool ifConnectedToMass = false;
 	string input;
-	int licz = 0;
+	int licz = 1;
 	while(getline(cin, input)) {
 		data = readLine(input);
 		if(get<0>(data) == "" || idSet.find(get<0>(data)) != idSet.end()) {
@@ -120,9 +120,9 @@ int main() {
 			idSet.insert(get<0>(data));
 			nodeSet.insert(get<2>(data));
 			nodeSet.insert(get<3>(data));
-			if (get<4>(data) != -1) 
+			if (get<4>(data) != -1)
 				nodeSet.insert(get<4>(data));
-			populateMap(partMap, data);
+			populateMap(&partMap, data);
 		}
 		licz++;
 	}
