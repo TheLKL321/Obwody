@@ -18,6 +18,53 @@ regex ID("[TDRCE](0|[1-9]\\d{0,9})");
 regex TYPE("([A-Z]|[0-9])[a-zA-Z0-9,-\\/]+");
 regex NODE("[0-9][1-9]{0,9}");
 
+struct cmpByPart {
+    bool operator()(pair<char, string> a, pair<char, string> b) const {
+			int x1 = -1, x2 = -1;
+			switch (a.st) {
+				case 'T' :
+					x1 = 0;
+					break;
+				case 'D' :
+					x1 = 1;
+					break;
+				case 'R' :
+					x1 = 2;
+					break;
+				case 'C' :
+					x1 = 3;
+					break;
+				case 'E' :
+					x1 = 4;
+					break;
+				default: x1 = -1;
+			}
+			switch (b.st) {
+				case 'T' :
+					x2 = 0;
+					break;
+				case 'D' :
+					x2 = 1;
+					break;
+				case 'R' :
+					x2 = 2;
+					break;
+				case 'C' :
+					x2 = 3;
+					break;
+				case 'E' :
+					x2 = 4;
+					break;
+				default : x1 = -1;
+			}
+			if(x1 < x2) return true;
+			else
+				if (x1 > x2) return false;
+				else
+					return a.nd < b.nd;
+    }
+};
+
 // Prints out an error
 void err(string line, int i) {
 	cerr << "Error in line " << i << ": " << line << endl;
@@ -55,9 +102,9 @@ tuple<string, string, int, int, int> readLine(string line) {
 		return tuple<string, string, int, int, int>("", "", -1, -1, -1);
 }
 
-void writeResults (map<pair<char, string>, vector<string>> partMap)
+void writeResults (map<pair<char, string>, vector<string>, cmpByPart> partMap)
 {
-	for(map<pair<char, string>, vector<string>>::iterator it = partMap.begin(); it != partMap.end(); it++)
+	for(map<pair<char, string>, vector<string>, cmpByPart>::iterator it = partMap.begin(); it != partMap.end(); it++)
 	{
 		size_t n = (it->nd).size();
 		for(size_t i = 0; i < n; i++)
@@ -90,9 +137,9 @@ void checkConnections (set<int> nodeSet, bool ifConnectedToMass) {
 	}
 }
 
-void populateMap (map<pair<char, string>, vector<string>> *partMap, tuple<string, string, int, int, int> data) {
+void populateMap (map<pair<char, string>, vector<string>, cmpByPart> *partMap, tuple<string, string, int, int, int> data) {
 	pair<char, string> key = mp(get<0>(data)[0], get<1>(data));
-	map<pair<char, string>, vector<string>>::iterator it = partMap->find(key);
+	map<pair<char, string>, vector<string>, cmpByPart>::iterator it = partMap->find(key);
 	if(it == partMap->end()){
 		vector<string> value;
 		value.pb(get<0>(data));
@@ -106,7 +153,7 @@ void populateMap (map<pair<char, string>, vector<string>> *partMap, tuple<string
 int main() {
 	set<string> idSet;
 	set<int> nodeSet;
-	map<pair<char, string>, vector<string>> partMap;
+	map<pair<char, string>, vector<string>, cmpByPart> partMap;
 	tuple<string, string, int, int, int> data;
 	bool ifConnectedToMass = false;
 	string input;
