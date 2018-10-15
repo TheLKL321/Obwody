@@ -16,8 +16,8 @@ using namespace std;
 #define pMap map<pair<char, string>, set<string, cmpByOrder>>
 
 regex ID("[TDRCE](0|[1-9]\\d{0,9})");
-regex TYPE("([A-Z]|[0-9])[a-zA-Z0-9,-\\/]+");
-regex NODE("[0-9][1-9]{0,9}");
+regex TYPE("([A-Z]|[0-9])[a-zA-Z0-9,-\\/]*");
+regex NODE("0|([1-9][0-9]{0,9})");
 
 struct cmpByOrder {
     bool operator()(string a, string b) const {
@@ -77,20 +77,21 @@ void err(string line, int i) {
 
 // Checks if given tokens are correct representations of required data
 bool ifCorrect(vector<string> tokens) {
-	return tokens.size() >= 4 &&
-		regex_match(tokens.at(0), ID) &&
-		regex_match(tokens.at(1), TYPE) &&
-		regex_match(tokens.at(2), NODE) &&
-		regex_match(tokens.at(3), NODE) &&
-		tokens.at(2) != tokens.at(3) &&
-		(tokens.size() == 4 ||
-			(tokens.at(0)[0] = 'T' &&
-				tokens.size() == 5 &&
-				tokens.at(4) != tokens.at(3) &&
-				tokens.at(4) != tokens.at(2)));
+	bool ifCorrect = true;
+	ifCorrect &= tokens.size() >= 4;
+	ifCorrect &= regex_match(tokens.at(0), ID);
+	ifCorrect &= regex_match(tokens.at(1), TYPE);
+	ifCorrect &= regex_match(tokens.at(2), NODE);
+	ifCorrect &= regex_match(tokens.at(3), NODE);
+	ifCorrect &= ((tokens.size() == 4 && 
+				tokens.at(2) != tokens.at(3)) || (tokens.at(0)[0] = 'T' &&
+													tokens.size() == 5 &&
+													(tokens.at(2) != tokens.at(3) || tokens.at(3) != tokens.at(4))));
+	return ifCorrect;
 }
 
-// Extracts data from string, returns ("", "", -1, -1, -1) tuple if data is incorrect
+// Extracts data from string
+// Returns ("", "", -1, -1, -1) tuple if data is incorrect
 tuple<string, string, int, int, int> readLine(string line) {
 	istringstream iss(line);
 	vector<string> tokens(istream_iterator<string>{iss}, istream_iterator<string>());
@@ -181,21 +182,23 @@ int main() {
 	string input;
 	int licz = 1;
 	while(getline(cin, input)) {
-		data = readLine(input);
-		if(get<0>(data) == "" || idSet.find(get<0>(data)) != idSet.end()) {
-			err(input, licz);
-		}
-		else {
-			idSet.insert(get<0>(data));
-			orderMap.insert(mp(get<0>(data), get<1>(data)));
-			if((get<2>(data) == 0) || (get<3>(data) == 0) || (get<4>(data) == 0))
-				ifConnectedToMass = true;
-			connect(&unconnectedNodeSet, &connectedNodeSet, get<2>(data));
-			if(get<3>(data) != get<2>(data))
-				connect(&unconnectedNodeSet, &connectedNodeSet, get<3>(data));
-			if ((get<4>(data) != -1) && (get<4>(data) != get<2>(data)) && (get<4>(data) != get<3>(data)))
-				connect(&unconnectedNodeSet, &connectedNodeSet, get<4>(data));
-			populateMap(&partMap, data);
+		if (input != "") {
+			data = readLine(input);
+			if (get<0>(data) == "" || idSet.find(get<0>(data)) != idSet.end()) {
+				err(input, licz);
+			}
+			else if (get<0>(data) != "empty") {
+				idSet.insert(get<0>(data));
+				orderMap.insert(mp(get<0>(data), get<1>(data)));
+				if ((get<2>(data) == 0) || (get<3>(data) == 0) || (get<4>(data) == 0))
+					ifConnectedToMass = true;
+				connect(&unconnectedNodeSet, &connectedNodeSet, get<2>(data));
+				if (get<3>(data) != get<2>(data))
+					connect(&unconnectedNodeSet, &connectedNodeSet, get<3>(data));
+				if ((get<4>(data) != -1) && (get<4>(data) != get<2>(data)) && (get<4>(data) != get<3>(data)))
+					connect(&unconnectedNodeSet, &connectedNodeSet, get<4>(data));
+				populateMap(&partMap, data);
+			}
 		}
 		licz++;
 	}
