@@ -9,18 +9,17 @@
 
 using namespace std;
 
-#define st first
-#define nd second
-#define mp make_pair
-#define oMap map<string, string, cmpByOrder>
-#define pMap map<pair<char, string>, set<string, cmpByOrder>>
-#define dataTuple tuple<string, string, int, int, int>
+struct cmpByOrder;
+
+typedef map<string, string, cmpByOrder> oMap;
+typedef map<pair<char, string>, set<string, cmpByOrder>> pMap;
+typedef tuple<string, string, int, int, int> dataTuple;
 
 regex ID("[TDRCE](0|[1-9]\\d{0,9})");
 regex TYPE("([A-Z]|[0-9])[a-zA-Z0-9,-\\/]*");
 regex NODE("0|([1-9][0-9]{0,9})");
 
-// Comparator used by xxxx implementing required sorting order
+// Comparator used by oMap and pMap implementing required sorting order
 struct cmpByOrder {
     bool operator()(string a, string b) const {
 			int x1 = -1, x2 = -1;
@@ -89,10 +88,16 @@ bool ifCorrect(vector<string> tokens) {
 	ifCorrect &= regex_match(tokens.at(1), TYPE);
 	ifCorrect &= regex_match(tokens.at(2), NODE);
 	ifCorrect &= regex_match(tokens.at(3), NODE);
-	ifCorrect &= ((tokens.size() == 4 && 
-				tokens.at(2) != tokens.at(3)) || (tokens.at(0)[0] = 'T' &&
-													tokens.size() == 5 &&
-													(tokens.at(2) != tokens.at(3) || tokens.at(3) != tokens.at(4))));
+	switch (tokens.size()) {
+	case 4:
+		ifCorrect &= tokens.at(0)[0] != 'T' && tokens.at(2) != tokens.at(3);
+		break;
+	case 5:
+		ifCorrect &= tokens.at(0)[0] == 'T' && (tokens.at(2) != tokens.at(3) || tokens.at(3) != tokens.at(4));
+		break;
+	default:
+		ifCorrect = false;
+	}
 	return ifCorrect;
 }
 
@@ -119,15 +124,15 @@ void writeResults (pMap partMap, oMap orderMap) {
 	pMap::iterator t;
 
 	for(oMap::iterator it = orderMap.begin(); it != orderMap.end(); it++) {
-		t = partMap.find(mp((it->st)[0], it->nd));
-		for(set<string,cmpByOrder>::iterator i = (t->nd).begin(); i != (t->nd).end(); i++) {
-			if(i != (t->nd).begin())
+		t = partMap.find(make_pair((it->first)[0], it->second));
+		for(set<string,cmpByOrder>::iterator i = (t->second).begin(); i != (t->second).end(); i++) {
+			if(i != (t->second).begin())
 				cout << ", ";
 			cout << *i;
-			if(i != (t->nd).begin())
+			if(i != (t->second).begin())
 			 	orderMap.erase(*i);
 		}
-		cout << ": " << (t->st).nd << endl;
+		cout << ": " << (t->first).second << endl;
 	}
 }
 
@@ -164,16 +169,16 @@ void connect(set<int> *unconnectedNodeSet, set<int> *connectedNodeSet, int node)
 
 // Copies the data into partMap
 void populateMap (pMap *partMap, dataTuple data) {
-	pair<char, string> key = mp(get<0>(data)[0], get<1>(data));
+	pair<char, string> key = make_pair(get<0>(data)[0], get<1>(data));
 	pMap::iterator it = partMap->find(key);
 
-	if(it == partMap->end()) {
+	if (it == partMap->end()) {
 		set<string,cmpByOrder> value;
 		value.insert(get<0>(data));
-		partMap->insert(mp(key,value));
+		partMap->insert(make_pair(key,value));
 	}
 	else
-		(it->nd).insert(get<0>(data));
+		(it->second).insert(get<0>(data));
 }
 
 int main() {
@@ -186,7 +191,7 @@ int main() {
 	string input;
 	int licz = 1;
 
-	while(getline(cin, input)) {
+	while (getline(cin, input)) {
 		if (input != "") {
 			data = readLine(input);
 			if (get<0>(data) == "" || idSet.find(get<0>(data)) != idSet.end()) {
@@ -194,7 +199,7 @@ int main() {
 			}
 			else if (get<0>(data) != "empty") {
 				idSet.insert(get<0>(data));
-				orderMap.insert(mp(get<0>(data), get<1>(data)));
+				orderMap.insert(make_pair(get<0>(data), get<1>(data)));
 
 				if ((get<2>(data) == 0) || (get<3>(data) == 0) || (get<4>(data) == 0))
 					ifConnectedToMass = true;
