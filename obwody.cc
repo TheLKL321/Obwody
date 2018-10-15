@@ -16,52 +16,26 @@ namespace {
 	typedef map<pair<char, string>, set<string, cmpByOrder>> pMap;
 	typedef tuple<string, string, int, int, int> dataTuple;
 
-	regex ID("[TDRCE](0|[1-9]\\d{0,9})");
-	regex TYPE("([A-Z]|[0-9])[a-zA-Z0-9,-\\/]*");
-	regex NODE("0|([1-9][0-9]{0,9})");
+	regex ID("[TDRCE](0|[1-9]\\d{0,8})");
+	regex TYPE("([A-Z]|[0-9])[a-zA-Z0-9,\\/-]*");
+	regex NODE("0|([1-9][0-9]{0,8})");
+
+	// Used by cmpByOrder to compare elements
+	int operatorHelper(char c) {
+		switch (c) {
+		case 'T': return 0;
+		case 'D': return 1;
+		case 'R': return 2;
+		case 'C': return 3;
+		case 'E': return 4;
+		default: return -1;
+		}
+	}
 
 	// Comparator used by oMap and pMap implementing required sorting order
 	struct cmpByOrder {
 		bool operator() (string a, string b) const {
-			int x1 = -1, x2 = -1;
-
-			switch (a[0]) {
-			case 'T':
-				x1 = 0;
-				break;
-			case 'D':
-				x1 = 1;
-				break;
-			case 'R':
-				x1 = 2;
-				break;
-			case 'C':
-				x1 = 3;
-				break;
-			case 'E':
-				x1 = 4;
-				break;
-			default: x1 = -1;
-			}
-
-			switch (b[0]) {
-			case 'T':
-				x2 = 0;
-				break;
-			case 'D':
-				x2 = 1;
-				break;
-			case 'R':
-				x2 = 2;
-				break;
-			case 'C':
-				x2 = 3;
-				break;
-			case 'E':
-				x2 = 4;
-				break;
-			default: x1 = -1;
-			}
+			int x1 = operatorHelper(a[0]), x2 = operatorHelper(b[0]);
 
 			if (x1 < x2)
 				return true;
@@ -85,19 +59,21 @@ namespace {
 	bool ifCorrect (vector<string> tokens) {
 		bool ifCorrect = true;
 		ifCorrect &= tokens.size() >= 4;
-		ifCorrect &= regex_match(tokens.at(0), ID);
-		ifCorrect &= regex_match(tokens.at(1), TYPE);
-		ifCorrect &= regex_match(tokens.at(2), NODE);
-		ifCorrect &= regex_match(tokens.at(3), NODE);
-		switch (tokens.size()) {
-		case 4:
-			ifCorrect &= tokens.at(0)[0] != 'T' && tokens.at(2) != tokens.at(3);
-			break;
-		case 5:
-			ifCorrect &= tokens.at(0)[0] == 'T' && (tokens.at(2) != tokens.at(3) || tokens.at(3) != tokens.at(4));
-			break;
-		default:
-			ifCorrect = false;
+		if (ifCorrect) {
+			ifCorrect &= regex_match(tokens.at(0), ID);
+			ifCorrect &= regex_match(tokens.at(1), TYPE);
+			ifCorrect &= regex_match(tokens.at(2), NODE);
+			ifCorrect &= regex_match(tokens.at(3), NODE);
+			switch (tokens.size()) {
+			case 4:
+				ifCorrect &= tokens.at(0)[0] != 'T' && tokens.at(2) != tokens.at(3);
+				break;
+			case 5:
+				ifCorrect &= tokens.at(0)[0] == 'T' && (tokens.at(2) != tokens.at(3) || tokens.at(3) != tokens.at(4));
+				break;
+			default:
+				ifCorrect = false;
+			}
 		}
 		return ifCorrect;
 	}
