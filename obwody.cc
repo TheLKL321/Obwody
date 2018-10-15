@@ -9,176 +9,178 @@
 
 using namespace std;
 
-struct cmpByOrder;
+namespace {
+	struct cmpByOrder;
 
-typedef map<string, string, cmpByOrder> oMap;
-typedef map<pair<char, string>, set<string, cmpByOrder>> pMap;
-typedef tuple<string, string, int, int, int> dataTuple;
+	typedef map<string, string, cmpByOrder> oMap;
+	typedef map<pair<char, string>, set<string, cmpByOrder>> pMap;
+	typedef tuple<string, string, int, int, int> dataTuple;
 
-regex ID("[TDRCE](0|[1-9]\\d{0,9})");
-regex TYPE("([A-Z]|[0-9])[a-zA-Z0-9,-\\/]*");
-regex NODE("0|([1-9][0-9]{0,9})");
+	regex ID("[TDRCE](0|[1-9]\\d{0,9})");
+	regex TYPE("([A-Z]|[0-9])[a-zA-Z0-9,-\\/]*");
+	regex NODE("0|([1-9][0-9]{0,9})");
 
-// Comparator used by oMap and pMap implementing required sorting order
-struct cmpByOrder {
-    bool operator()(string a, string b) const {
+	// Comparator used by oMap and pMap implementing required sorting order
+	struct cmpByOrder {
+		bool operator() (string a, string b) const {
 			int x1 = -1, x2 = -1;
 
 			switch (a[0]) {
-				case 'T' :
-					x1 = 0;
-					break;
-				case 'D' :
-					x1 = 1;
-					break;
-				case 'R' :
-					x1 = 2;
-					break;
-				case 'C' :
-					x1 = 3;
-					break;
-				case 'E' :
-					x1 = 4;
-					break;
-				default: x1 = -1;
+			case 'T':
+				x1 = 0;
+				break;
+			case 'D':
+				x1 = 1;
+				break;
+			case 'R':
+				x1 = 2;
+				break;
+			case 'C':
+				x1 = 3;
+				break;
+			case 'E':
+				x1 = 4;
+				break;
+			default: x1 = -1;
 			}
 
 			switch (b[0]) {
-				case 'T' :
-					x2 = 0;
-					break;
-				case 'D' :
-					x2 = 1;
-					break;
-				case 'R' :
-					x2 = 2;
-					break;
-				case 'C' :
-					x2 = 3;
-					break;
-				case 'E' :
-					x2 = 4;
-					break;
-				default : x1 = -1;
+			case 'T':
+				x2 = 0;
+				break;
+			case 'D':
+				x2 = 1;
+				break;
+			case 'R':
+				x2 = 2;
+				break;
+			case 'C':
+				x2 = 3;
+				break;
+			case 'E':
+				x2 = 4;
+				break;
+			default: x1 = -1;
 			}
 
-			if (x1 < x2) 
+			if (x1 < x2)
 				return true;
 			else if (x1 > x2)
 				return false;
 			else if (a.length() < b.length())
 				return true;
-			else if (a.length() > b.length()) 
+			else if (a.length() > b.length())
 				return false;
 			else
 				return a < b;
-    }
-};
-
-// Prints out an error
-void err(string line, int i) {
-	cerr << "Error in line " << i << ": " << line << endl;
-}
-
-// Checks if given tokens are correct representations of required data
-bool ifCorrect(vector<string> tokens) {
-	bool ifCorrect = true;
-	ifCorrect &= tokens.size() >= 4;
-	ifCorrect &= regex_match(tokens.at(0), ID);
-	ifCorrect &= regex_match(tokens.at(1), TYPE);
-	ifCorrect &= regex_match(tokens.at(2), NODE);
-	ifCorrect &= regex_match(tokens.at(3), NODE);
-	switch (tokens.size()) {
-	case 4:
-		ifCorrect &= tokens.at(0)[0] != 'T' && tokens.at(2) != tokens.at(3);
-		break;
-	case 5:
-		ifCorrect &= tokens.at(0)[0] == 'T' && (tokens.at(2) != tokens.at(3) || tokens.at(3) != tokens.at(4));
-		break;
-	default:
-		ifCorrect = false;
-	}
-	return ifCorrect;
-}
-
-// Extracts data from string
-// Returns ("", "", -1, -1, -1) tuple if data is incorrect
-dataTuple readLine(string line) {
-	istringstream iss(line);
-	vector<string> tokens(istream_iterator<string>{iss}, istream_iterator<string>());
-
-	if (ifCorrect(tokens)) {
-		int last;
-		if (tokens.size() == 4)
-			last = -1;
-		else
-			last = stoi(tokens.at(4));
-		return dataTuple(tokens.at(0), tokens.at(1), stoi(tokens.at(2)), stoi(tokens.at(3)), last);
-	}
-	else
-		return dataTuple("", "", -1, -1, -1);
-}
-
-// Prints out the program results using partMap and orderMap
-void writeResults (pMap partMap, oMap orderMap) {
-	pMap::iterator t;
-
-	for(oMap::iterator it = orderMap.begin(); it != orderMap.end(); it++) {
-		t = partMap.find(make_pair((it->first)[0], it->second));
-		for(set<string,cmpByOrder>::iterator i = (t->second).begin(); i != (t->second).end(); i++) {
-			if(i != (t->second).begin())
-				cout << ", ";
-			cout << *i;
-			if(i != (t->second).begin())
-			 	orderMap.erase(*i);
 		}
-		cout << ": " << (t->first).second << endl;
+	};
+
+	// Prints out an error
+	void err (string line, int i) {
+		cerr << "Error in line " << i << ": " << line << endl;
 	}
-}
 
-// Checks if any of declared nodes are unconnected and if so, prints according error
-void checkConnections (set<int> nodeSet, bool ifConnectedToMass) {
-	if (!ifConnectedToMass)
-		nodeSet.insert(0);
+	// Checks if given tokens are correct representations of required data
+	bool ifCorrect (vector<string> tokens) {
+		bool ifCorrect = true;
+		ifCorrect &= tokens.size() >= 4;
+		ifCorrect &= regex_match(tokens.at(0), ID);
+		ifCorrect &= regex_match(tokens.at(1), TYPE);
+		ifCorrect &= regex_match(tokens.at(2), NODE);
+		ifCorrect &= regex_match(tokens.at(3), NODE);
+		switch (tokens.size()) {
+		case 4:
+			ifCorrect &= tokens.at(0)[0] != 'T' && tokens.at(2) != tokens.at(3);
+			break;
+		case 5:
+			ifCorrect &= tokens.at(0)[0] == 'T' && (tokens.at(2) != tokens.at(3) || tokens.at(3) != tokens.at(4));
+			break;
+		default:
+			ifCorrect = false;
+		}
+		return ifCorrect;
+	}
 
-	if (!nodeSet.empty()) {
-		cerr << "Warning, unconnected node(s): ";
-		size_t nodesLeft = nodeSet.size();
-		for (auto node : nodeSet) {
-			cerr << node;
-			nodesLeft--;
-			if (nodesLeft > 0)
-				cerr << ", ";
+	// Extracts data from string
+	// Returns ("", "", -1, -1, -1) tuple if data is incorrect
+	dataTuple readLine (string line) {
+		istringstream iss(line);
+		vector<string> tokens(istream_iterator<string>{iss}, istream_iterator<string>());
+
+		if (ifCorrect(tokens)) {
+			int last;
+			if (tokens.size() == 4)
+				last = -1;
 			else
-				cerr << endl;
-		}
-	}
-}
-
-// Registers a connection to the node
-void connect(set<int> *unconnectedNodeSet, set<int> *connectedNodeSet, int node) {
-	if(!connectedNodeSet->count(node)){
-		if(unconnectedNodeSet->count(node)) {
-			unconnectedNodeSet->erase(node);
-			connectedNodeSet->insert(node);
+				last = stoi(tokens.at(4));
+			return dataTuple(tokens.at(0), tokens.at(1), stoi(tokens.at(2)), stoi(tokens.at(3)), last);
 		}
 		else
-			unconnectedNodeSet->insert(node);
+			return dataTuple("", "", -1, -1, -1);
 	}
-}
 
-// Copies the data into partMap
-void populateMap (pMap *partMap, dataTuple data) {
-	pair<char, string> key = make_pair(get<0>(data)[0], get<1>(data));
-	pMap::iterator it = partMap->find(key);
+	// Prints out the program results using partMap and orderMap
+	void writeResults (pMap partMap, oMap orderMap) {
+		pMap::iterator t;
 
-	if (it == partMap->end()) {
-		set<string,cmpByOrder> value;
-		value.insert(get<0>(data));
-		partMap->insert(make_pair(key,value));
+		for (oMap::iterator it = orderMap.begin(); it != orderMap.end(); it++) {
+			t = partMap.find(make_pair((it->first)[0], it->second));
+			for (set<string, cmpByOrder>::iterator i = (t->second).begin(); i != (t->second).end(); i++) {
+				if (i != (t->second).begin())
+					cout << ", ";
+				cout << *i;
+				if (i != (t->second).begin())
+					orderMap.erase(*i);
+			}
+			cout << ": " << (t->first).second << endl;
+		}
 	}
-	else
-		(it->second).insert(get<0>(data));
+
+	// Checks if any of declared nodes are unconnected and if so, prints according error
+	void checkConnections (set<int> nodeSet, bool ifConnectedToMass) {
+		if (!ifConnectedToMass)
+			nodeSet.insert(0);
+
+		if (!nodeSet.empty()) {
+			cerr << "Warning, unconnected node(s): ";
+			size_t nodesLeft = nodeSet.size();
+			for (auto node : nodeSet) {
+				cerr << node;
+				nodesLeft--;
+				if (nodesLeft > 0)
+					cerr << ", ";
+				else
+					cerr << endl;
+			}
+		}
+	}
+
+	// Registers a connection to the node
+	void connect (set<int> *unconnectedNodeSet, set<int> *connectedNodeSet, int node) {
+		if (!connectedNodeSet->count(node)) {
+			if (unconnectedNodeSet->count(node)) {
+				unconnectedNodeSet->erase(node);
+				connectedNodeSet->insert(node);
+			}
+			else
+				unconnectedNodeSet->insert(node);
+		}
+	}
+
+	// Copies the data into partMap
+	void populateMap (pMap *partMap, dataTuple data) {
+		pair<char, string> key = make_pair(get<0>(data)[0], get<1>(data));
+		pMap::iterator it = partMap->find(key);
+
+		if (it == partMap->end()) {
+			set<string, cmpByOrder> value;
+			value.insert(get<0>(data));
+			partMap->insert(make_pair(key, value));
+		}
+		else
+			(it->second).insert(get<0>(data));
+	}
 }
 
 int main() {
@@ -197,7 +199,7 @@ int main() {
 			if (get<0>(data) == "" || idSet.find(get<0>(data)) != idSet.end()) {
 				err(input, licz);
 			}
-			else if (get<0>(data) != "empty") {
+			else {
 				idSet.insert(get<0>(data));
 				orderMap.insert(make_pair(get<0>(data), get<1>(data)));
 
